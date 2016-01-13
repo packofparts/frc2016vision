@@ -1,3 +1,7 @@
+plugins {
+	id "com.google.osdetector" version "1.4.0"
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -9,6 +13,16 @@ task wrapper(type: Wrapper) {
 
 mainClassName = "org.usfirst.frc.team1294.vision.Program"
 
+// The following makes "gradle run" work
+run {
+	println osdetector.classifier
+    jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
+}
+
+// To get it to run on eclipse, add the following to the VM arguments of the run configuration
+// -Djava.library.path=./lib/osx-x86_64/        (or ./lib/windows-x64)
+
+
 dependencies {
-		compile files('C:/Users/Michael/Downloads/opencv/build/java/opencv-310.jar')
+	compile files("$rootDir/lib/java/opencv-310.jar")
 }
