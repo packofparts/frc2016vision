@@ -8,3 +8,7 @@ task wrapper(type: Wrapper) {
 }
 
 mainClassName = "org.usfirst.frc.team1294.vision.Program"
+
+dependencies {
+		compile files('C:/Users/Michael/Downloads/opencv/build/java/opencv-310.jar')
+}
