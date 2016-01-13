@@ -16,11 +16,13 @@ mainClassName = "org.usfirst.frc.team1294.vision.Program"
 // The following makes "gradle run" work
 run {
 	println osdetector.classifier
-    jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
+	jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
 }
 
-// To get it to run on eclipse, add the following to the VM arguments of the run configuration
-// -Djava.library.path=./lib/osx-x86_64/        (or ./lib/windows-x64)
+// To get it to run on eclipse, add one of the following to the VM arguments of the run configuration
+// -Djava.library.path=./lib/osx-x86_64/        (Mac only)
+// -Djava.library.path=./lib/windows-x86_64/        (Windows only)
+
 
 
 dependencies {
