@@ -14,7 +14,6 @@ mainClassName = "org.usfirst.frc.team1294.vision.Program"
 
 // The following makes "gradle run" work
 run {
-	println osdetector.classifier
 	jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
 }
 
