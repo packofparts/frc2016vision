@@ -1,0 +1,10 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "2.4"
+}
+
+mainClassName = "org.usfirst.frc.team1294.vision.Program"
