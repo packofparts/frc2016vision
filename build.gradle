@@ -1,7 +1,10 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'application'
+plugins {
+	id "java"
+	id "eclipse"
+	id "idea"
+	id "application"
+	id "com.google.osdetector" version "1.4.0"
+}
 
 task wrapper(type: Wrapper) {
 	gradleVersion = "2.4"
@@ -9,6 +12,17 @@ task wrapper(type: Wrapper) {
 
 mainClassName = "org.usfirst.frc.team1294.vision.Program"
 
+// The following makes "gradle run" work
+run {
+	jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
+}
+
+// To get it to run on eclipse, add one of the following to the VM arguments of the run configuration
+// -Djava.library.path=./lib/osx-x86_64/        (Mac only)
+// -Djava.library.path=./lib/windows-x86_64/        (Windows only)
+
+
+
 dependencies {
-		compile files('C:/Users/Michael/Downloads/opencv/build/java/opencv-310.jar')
+	compile files("$rootDir/lib/java/opencv-310.jar")
 }
