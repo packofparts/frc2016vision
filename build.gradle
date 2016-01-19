@@ -3,26 +3,73 @@ plugins {
 	id "eclipse"
 	id "idea"
 	id "application"
-	id "com.google.osdetector" version "1.4.0"
+	id 'org.ajoberstar.grgit' version '1.3.2'
+    id 'org.ajoberstar.release-opinion' version '1.3.2'
+    id 'org.hidetake.ssh' version '1.1.4'
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = "2.4"
+	gradleVersion = "2.10"
 }
 
 mainClassName = "org.usfirst.frc.team1294.vision.Program"
 
-// The following makes "gradle run" work
-run {
-	jvmArgs = ["-Djava.library.path=$rootDir/lib/$osdetector.classifier/"]
+
+repositories {
+    mavenCentral()
+    maven {
+    	url "http://first.wpi.edu/FRC/roborio/maven/release"
+	}
 }
 
-// To get it to run on eclipse, add one of the following to the VM arguments of the run configuration
-// -Djava.library.path=./lib/osx-x86_64/        (Mac only)
-// -Djava.library.path=./lib/windows-x86_64/        (Windows only)
-
-
-
 dependencies {
-	compile files("$rootDir/lib/java/opencv-310.jar")
+	compile 'org.slf4j:slf4j-api:1.7.13'
+    compile files("$rootDir/lib/opencv-310.jar")
+	compile group: 'edu.wpi.first.wpilib.networktables.java', name: 'NetworkTables', version: '3.0.0-SNAPSHOT', classifier: 'desktop'
+	
+	// Comment out the following if you are building for the raspberry pi
+	//compile group: 'edu.wpi.first.wpilib.networktables.java', name: 'NetworkTables', version: '3.0.0-SNAPSHOT', classifier: 'arm'
+	// Comment out the following if you are building for the roborio (untested)
+	compile files("$rootDir/lib/ntcore-arm.jar")
+}
+
+jar { 
+  manifest {
+    attributes(
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+      'Main-Class': "$mainClassName",
+      'Version' : project.version.toString(),
+      'Author' : getAuthor()
+	)
+  }
+  from configurations.compile.collect { entry -> zipTree(entry) }  
+}
+
+def getAuthor() {
+  def author = "unknown"
+  grgit = org.ajoberstar.grgit.Grgit.open(project.file('.')) 
+  if (grgit.status().isClean()) {
+    def history = grgit.log(maxCommits: 1)
+    author = "${history.author.name[0]} <${history.author.email[0]}>"
+  } else {
+    author = System.env.USER ?: System.env.USERNAME
+  }
+  return author
+}
+
+remotes {
+  raspberrypi {
+    host = 'raspberrypi-1294.local'
+    user = 'pi'
+    password = 'raspberry'
+  }
+}
+
+task deploy << {
+  ssh.run {
+    session(remotes.raspberrypi) {
+      put jar.archivePath, '/home/pi/VisionSystem.jar'
+      execute 'sudo service vision restart'
+    }
+  }
 }
