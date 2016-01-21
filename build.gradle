@@ -12,7 +12,7 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "2.10"
 }
 
-mainClassName = "org.usfirst.frc.team1294.vision.Program"
+mainClassName = "org.usfirst.frc.team1294.vision.Application"
 
 
 repositories {
