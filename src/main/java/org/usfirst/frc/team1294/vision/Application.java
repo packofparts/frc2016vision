@@ -29,7 +29,58 @@ public class Application {
 		
 		MJpegStreamer vs = new MJpegStreamer(cameraPort, imageProcessor, visionTable);
 		vs.start();
-	
+        
+		while (true) {
+			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b)", visionTable.getThresholdLowH(),
+					visionTable.getThresholdLowS(),
+					visionTable.getThresholdLowL(),
+					visionTable.getThresholdHighH(),
+					visionTable.getThresholdHighS(),
+					visionTable.getThresholdHighL(),
+					visionTable.getQuality(),
+					visionTable.getFPS(),
+					visionTable.isDisplayMask()));
+			switch (System.console().readLine().toUpperCase()) {
+			case "M": {
+				visionTable.setDisplayMask(!visionTable.isDisplayMask());
+				break;
+			}
+			case "LH": {
+				try {
+					visionTable.setThresholdLowH(Double.parseDouble(System.console().readLine("New Low Threshold Hue value: ")));
+				} catch (Exception ex) {
+					break;
+				}
+				break;
+			}
+			case "LS": {
+				// TODO
+				break;
+			}
+			case "LL": {
+				// TODO
+				break;
+			}
+			case "HH": {
+				// TODO
+				break;
+			}
+			case "HS": {
+				// TODO
+				break;
+			}
+			case "HL": {
+				// TODO
+				break;
+			}
+			case "Q":
+				// TODO
+				break;
+			case "F":
+				// TODO
+				break;
+			}
+		}
 	}
 
 	private static void displayBanner() throws IOException {

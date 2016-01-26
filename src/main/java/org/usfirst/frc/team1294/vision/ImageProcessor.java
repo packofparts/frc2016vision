@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1294.vision;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class ImageProcessor implements Runnable {
 	Scalar color_gray = new Scalar(160,160,160);
 	Scalar color_white = new Scalar(255,255,255);
 	Scalar color_red = new Scalar(0,0,255);
-	Scalar color_yellow = new Scalar(255,0,255);
+	Scalar color_yellow = new Scalar(0,255,255);
 	
 	public ImageProcessor(int webcam, VisionNetworkTable visionTable) {
 		capture = new VideoCapture(webcam);
@@ -107,18 +108,17 @@ public class ImageProcessor implements Runnable {
 		// find all the contours
 		List<MatOfPoint> contours = new ArrayList<>();
 		Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-		Imgproc.drawContours(originalImage, contours, -1, color_yellow);
 		
-		//find the biggest contour TODO: much more logic needed here
-		Optional<MatOfPoint> bigestContour = contours.stream()
+		//find the target contour TODO: much more logic needed here
+		Optional<MatOfPoint> targetContour = contours.stream()
 				.filter((c) -> {
 					Rect r = Imgproc.boundingRect(c);
 					return (r.width > r.height);
 				})
 				.max(Comparator.comparing(c -> Imgproc.contourArea(c)));
 		
-		if (bigestContour.isPresent()) {
-			Rect boundingRect = Imgproc.boundingRect(bigestContour.get());
+		if (targetContour.isPresent()) {
+			Rect boundingRect = Imgproc.boundingRect(targetContour.get());
 			
 			// find upper left and upper right points on the contour
 			double[] pRectUpperLeft = new double[2];
@@ -134,9 +134,9 @@ public class ImageProcessor implements Runnable {
 			double minDistanceUpperLeft = Double.MAX_VALUE;
 			double minDistanceUpperRight = Double.MAX_VALUE;
 			
-			for(int col=0;col<bigestContour.get().cols();col++) {
-				for (int row=0;row<bigestContour.get().rows();row++) {
-					double[] p = bigestContour.get().get(row, col);
+			for(int col=0;col<targetContour.get().cols();col++) {
+				for (int row=0;row<targetContour.get().rows();row++) {
+					double[] p = targetContour.get().get(row, col);
 					
 					double dUpperLeft = distance(p, pRectUpperLeft);
 					if (dUpperLeft < minDistanceUpperLeft) {
@@ -158,9 +158,8 @@ public class ImageProcessor implements Runnable {
 			pMidpoint[1] = (pUpperLeft[1] + pUpperRight[1]) / 2;
 		
 			// draw the contours, target rect, midpoint, etc
-			
+			Imgproc.drawContours(originalImage, Arrays.asList(targetContour.get()), -1, color_yellow);
 			Imgproc.rectangle(originalImage, boundingRect.tl(), boundingRect.br(), color_gray);
-			
 			Imgproc.circle(originalImage, new Point(pUpperLeft), 2, color_white, -1);
 			Imgproc.circle(originalImage, new Point(pUpperRight), 2, color_white, -1);
 			Imgproc.circle(originalImage, new Point(pMidpoint), 6, color_red, 3);
@@ -182,7 +181,11 @@ public class ImageProcessor implements Runnable {
 		// encode it as jpeg
 		MatOfByte m = new MatOfByte();
 		MatOfInt parameters = new MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, visionTable.getQuality());
-		Imgcodecs.imencode(".jpg", originalImage, m, parameters);
+		if (visionTable.isDisplayMask()) {
+			Imgcodecs.imencode(".jpg", maskImage, m, parameters);
+		} else {
+			Imgcodecs.imencode(".jpg", originalImage, m, parameters);
+		}
 		lastImage.set(m.toArray());
 		
 		

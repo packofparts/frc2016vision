@@ -10,6 +10,7 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -18,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLoggerFactory;
 
-public class MJpegStreamer implements ThreadFactory {
+public class MJpegStreamer implements ThreadFactory, Runnable {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MJpegStreamer.class);
 	private static final String BOUNDARY = "mjpegframe";
@@ -26,7 +27,7 @@ public class MJpegStreamer implements ThreadFactory {
 	
 	private int number = 0;
 	private int port = 0;
-	//private ExecutorService executor = Executors.newCachedThreadPool(this);
+	private ExecutorService executor = Executors.newCachedThreadPool(this);
 	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	private ImageProcessor imageProcessor;
 	private WebcamExceptionHandler exceptionHandler = new WebcamExceptionHandler();
@@ -38,7 +39,8 @@ public class MJpegStreamer implements ThreadFactory {
 		this.visionTable = visionTable;
 	}
 	
-	public void start() {
+	@Override
+	public void run() {
 		ServerSocket server = null;
 		try {
 			server = new ServerSocket(port, 150);
@@ -56,6 +58,10 @@ public class MJpegStreamer implements ThreadFactory {
 				LOG.error("Could not close server", e);
 			}
 		}
+	}
+	
+	public void start() {
+		executor.execute(this);
 	}
 		
 	@Override
@@ -213,6 +219,8 @@ public class MJpegStreamer implements ThreadFactory {
 		
 		
 	}
+
+	
 
 	
 }

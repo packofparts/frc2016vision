@@ -34,6 +34,9 @@ public class VisionNetworkTable {
 	private static final String LAST_UPDATED = "lastUpdated";
 	private static final long DEFAULT_LAST_UPDATED = -1;
 	
+	private static final String DISPLAY_MASK = "displayMask";
+	private static final boolean DEFAULT_DISPLAY_MASK = false;
+	
 	private final NetworkTable nt;
 
 	public VisionNetworkTable() {
@@ -52,24 +55,48 @@ public class VisionNetworkTable {
 		return (int)nt.getNumber(THRESHOLD_LOW_H, DEFAULT_THRESHOLD_LOW_H);
 	}
 	
+	public void setThresholdLowH(double value) {
+		nt.putNumber(THRESHOLD_LOW_H, value);
+	}
+	
 	public int getThresholdLowS() {
 		return (int)nt.getNumber(THRESHOLD_LOW_S, DEFAULT_THRESHOLD_LOW_S);
+	}
+	
+	public void setThresholdLowS(double value) {
+		nt.putNumber(THRESHOLD_LOW_S, value);
 	}
 	
 	public int getThresholdLowL() {
 		return (int)nt.getNumber(THRESHOLD_LOW_L, DEFAULT_THRESHOLD_LOW_L);
 	}
 	
+	public void setThresholdLowL(double value) {
+		nt.putNumber(THRESHOLD_LOW_L, value);
+	}
+	
 	public int getThresholdHighH() {
 		return (int)nt.getNumber(THRESHOLD_HIGH_H, DEFAULT_THRESHOLD_HIGH_H);
+	}
+	
+	public void setThresholdHighH(double value) {
+		nt.putNumber(THRESHOLD_HIGH_H, value);
 	}
 	
 	public int getThresholdHighS() {
 		return (int)nt.getNumber(THRESHOLD_HIGH_S, DEFAULT_THRESHOLD_HIGH_S);
 	}
 	
+	public void setThresholdHighS(double value) {
+		nt.putNumber(THRESHOLD_HIGH_S, value);
+	}
+	
 	public int getThresholdHighL() {
 		return (int)nt.getNumber(THRESHOLD_HIGH_L, DEFAULT_THRESHOLD_HIGH_L);
+	}
+	
+	public void setThresholdHighL(double value) {
+		nt.putNumber(THRESHOLD_HIGH_L, value);
 	}
 	
 	public int getQuality() {
@@ -110,5 +137,13 @@ public class VisionNetworkTable {
 	
 	public void setLastUpdated(long value) {
 		nt.putNumber(LAST_UPDATED, value);
+	}
+	
+	public boolean isDisplayMask() {
+		return (boolean)nt.getBoolean(DISPLAY_MASK, DEFAULT_DISPLAY_MASK);
+	}
+	
+	public void setDisplayMask(boolean value) {
+		nt.putBoolean(DISPLAY_MASK, value);
 	}
 }
