@@ -60,6 +60,10 @@ public class ImageProcessor implements Runnable {
 		maskImage = new Mat();
 		hierarchy = new Mat();
 		
+		setCameraManualExposure();
+		setCameraAbsoluteExposure();
+		setCameraBrightness();
+		
 		System.out.println("ImageProcesser constructor done");
 	}
 	
@@ -191,6 +195,8 @@ public class ImageProcessor implements Runnable {
 	}
 
 	public void captureImage() {
+		setCameraAbsoluteExposure();
+		setCameraBrightness();
 		capture.read(originalImage);
 	}
 	
@@ -216,6 +222,36 @@ public class ImageProcessor implements Runnable {
 		return lastImage.get();
 	}
 
-
+	private int brightness;
+	private void setCameraBrightness() {
+		if (brightness != visionTable.getBrightness()) {
+			brightness = visionTable.getBrightness();
+			try {
+				Runtime.getRuntime().exec("/usr/bin/v4l2-ctl --set-ctrl brightness=" + brightness);
+			} catch (Exception ex) {
+				LOG.error("Could not adjust brightness", ex);
+			}
+		}
+	}
+	
+	private void setCameraManualExposure() {
+		try {
+			Runtime.getRuntime().exec("/usr/bin/v4l2-ctl --set-ctrl exposure_auto=1");
+		} catch (Exception ex) {
+			LOG.error("Could not set manual exposure", ex);
+		}
+	}
+	
+	private int absoluteExposure;
+	private void setCameraAbsoluteExposure() {
+		if (absoluteExposure != visionTable.getAbsoluteExposure()) {
+			absoluteExposure = visionTable.getAbsoluteExposure();
+			try {
+				Runtime.getRuntime().exec("/usr/bin/v4l2-ctl --set-ctrl exposure_absolute=" + absoluteExposure);
+			} catch (Exception ex) {
+				LOG.error("Could not set manual exposure", ex);
+			}
+		}
+	}
 	
 }

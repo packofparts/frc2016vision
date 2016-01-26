@@ -30,8 +30,12 @@ public class Application {
 		MJpegStreamer vs = new MJpegStreamer(cameraPort, imageProcessor, visionTable);
 		vs.start();
         
+		commandLineInterface(visionTable);
+	}
+
+	private static void commandLineInterface(VisionNetworkTable visionTable) {
 		while (true) {
-			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b)", visionTable.getThresholdLowH(),
+			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b) Brightness:(%d)", visionTable.getThresholdLowH(),
 					visionTable.getThresholdLowS(),
 					visionTable.getThresholdLowL(),
 					visionTable.getThresholdHighH(),
@@ -39,10 +43,19 @@ public class Application {
 					visionTable.getThresholdHighL(),
 					visionTable.getQuality(),
 					visionTable.getFPS(),
-					visionTable.isDisplayMask()));
+					visionTable.isDisplayMask(),
+					visionTable.getBrightness()));
 			switch (System.console().readLine().toUpperCase()) {
 			case "M": {
 				visionTable.setDisplayMask(!visionTable.isDisplayMask());
+				break;
+			}
+			case "B": {
+				try {
+					visionTable.setBrightness(Integer.parseInt(System.console().readLine("New brightness value: ")));
+				} catch (Exception ex) {
+					break;
+				}
 				break;
 			}
 			case "LH": {

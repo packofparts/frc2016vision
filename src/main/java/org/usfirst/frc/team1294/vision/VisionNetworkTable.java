@@ -37,6 +37,12 @@ public class VisionNetworkTable {
 	private static final String DISPLAY_MASK = "displayMask";
 	private static final boolean DEFAULT_DISPLAY_MASK = false;
 	
+	private static final String BRIGHTNESS = "brightness";
+	private static final int DEFAULT_BRIGHTNESS = 120;
+	
+	private static final String ABSOLUTE_EXPOSURE = "absoluteExposure";
+	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 30;
+	
 	private final NetworkTable nt;
 
 	public VisionNetworkTable() {
@@ -145,5 +151,21 @@ public class VisionNetworkTable {
 	
 	public void setDisplayMask(boolean value) {
 		nt.putBoolean(DISPLAY_MASK, value);
+	}
+	
+	public int getBrightness() {
+		return (int)nt.getNumber(BRIGHTNESS, DEFAULT_BRIGHTNESS);
+	}
+	
+	public void setBrightness(int value) {
+		nt.putNumber(BRIGHTNESS, value);
+	}
+	
+	public int getAbsoluteExposure() {
+		return (int)nt.getNumber(ABSOLUTE_EXPOSURE, DEFAULT_ABSOLUTE_EXPOSURE);
+	}
+	
+	public void setAbsoluteExposure(int value) {
+		nt.putNumber(ABSOLUTE_EXPOSURE, value);
 	}
 }
