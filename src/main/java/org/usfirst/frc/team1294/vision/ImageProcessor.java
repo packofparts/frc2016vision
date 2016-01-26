@@ -107,6 +107,9 @@ public class ImageProcessor implements Runnable {
 		
 		// find all the contours
 		List<MatOfPoint> contours = new ArrayList<>();
+		if (visionTable.isDisplayMask()) {
+			maskImage.copyTo(originalImage, maskImage);
+		}
 		Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 		
 		//find the target contour TODO: much more logic needed here
@@ -181,11 +184,7 @@ public class ImageProcessor implements Runnable {
 		// encode it as jpeg
 		MatOfByte m = new MatOfByte();
 		MatOfInt parameters = new MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, visionTable.getQuality());
-		if (visionTable.isDisplayMask()) {
-			Imgcodecs.imencode(".jpg", maskImage, m, parameters);
-		} else {
-			Imgcodecs.imencode(".jpg", originalImage, m, parameters);
-		}
+		Imgcodecs.imencode(".jpg", originalImage, m, parameters);
 		lastImage.set(m.toArray());
 		
 		
