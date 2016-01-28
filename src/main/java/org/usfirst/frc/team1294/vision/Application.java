@@ -35,7 +35,7 @@ public class Application {
 
 	private static void commandLineInterface(VisionNetworkTable visionTable) {
 		while (true) {
-			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b) Brightness:(%d)", visionTable.getThresholdLowH(),
+			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b) Brightness:(%d) Exposure:(%d)", visionTable.getThresholdLowH(),
 					visionTable.getThresholdLowS(),
 					visionTable.getThresholdLowL(),
 					visionTable.getThresholdHighH(),
@@ -45,10 +45,18 @@ public class Application {
 					visionTable.getFPS(),
 					visionTable.isDisplayMask(),
 					visionTable.getBrightness()));
+					visionTable.getAbsoluteExposure();
 			switch (System.console().readLine().toUpperCase()) {
 			case "M": {
 				visionTable.setDisplayMask(!visionTable.isDisplayMask());
 				break;
+			}
+			case "E": {
+				try {
+				visionTable.setAbsoluteExposure(Integer.parseInt(System.console().readLine("New Absolute Exposure Value: ")));
+				} catch (Exception ex) {
+					break;
+				}
 			}
 			case "B": {
 				try {
@@ -67,24 +75,40 @@ public class Application {
 				break;
 			}
 			case "LS": {
-				// TODO
+				try {
+					visionTable.setThresholdLowS(Double.parseDouble(System.console().readLine("New Low Threshold Saturation value: ")));
+				
+				} catch (Exception ex) {
 				break;
+				}
 			}
 			case "LL": {
-				// TODO
+				try {
+					visionTable.setThresholdLowL(Double.parseDouble(System.console().readLine("New Low Threshold Luminance value: ")));
+				} catch (Exception ex) {
 				break;
+				}
 			}
 			case "HH": {
-				// TODO
+				try {
+					visionTable.setThresholdHighH(Double.parseDouble(System.console().readLine("New High Threshold Hue value: ")));
+				} catch (Exception ex) {
 				break;
+				}
 			}
 			case "HS": {
-				// TODO
-				break;
+				try {
+					visionTable.setThresholdHighS(Double.parseDouble(System.console().readLine("New High Threshold Saturation Value:")));
+				} catch (Exception ex) {	
+					break;
+				}
 			}
 			case "HL": {
-				// TODO
-				break;
+				try {
+					visionTable.setThresholdHighL(Double.parseDouble(System.console().readLine("New High Threshold Luminance Value:")));
+				} catch (Exception ex) {
+ 				break;
+			}
 			}
 			case "Q":
 				// TODO

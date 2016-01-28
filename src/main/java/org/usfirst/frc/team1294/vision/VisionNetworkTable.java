@@ -17,7 +17,7 @@ public class VisionNetworkTable {
 	private static final int DEFAULT_THRESHOLD_LOW_H = 20;
 	
 	private static final String QUALITY = "quality";
-	private static final int DEFAULT_QUALITY = 10;
+	private static final int DEFAULT_QUALITY = 50;
 	
 	private static final String FPS = "fps";
 	private static final int DEFAULT_FPS = 5;
@@ -41,7 +41,7 @@ public class VisionNetworkTable {
 	private static final int DEFAULT_BRIGHTNESS = 120;
 	
 	private static final String ABSOLUTE_EXPOSURE = "absoluteExposure";
-	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 30;
+	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 6;
 	
 	private final NetworkTable nt;
 

@@ -64,7 +64,9 @@ remotes {
     password = 'raspberry'
   }
 }
-
+ssh.settings {
+	knownHosts = allowAnyHosts
+}
 task deploy << {
   ssh.run {
     session(remotes.raspberrypi) {
