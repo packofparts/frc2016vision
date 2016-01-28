@@ -11,10 +11,10 @@ public class VisionNetworkTable {
 	private static final String THRESHOLD_LOW_H = "thresholdLowH";
 	private static final int DEFAULT_THRESHOLD_HIGH_L = 255;
 	private static final int DEFAULT_THRESHOLD_HIGH_S = 255;
-	private static final int DEFAULT_THRESHOLD_HIGH_H = 40;
-	private static final int DEFAULT_THRESHOLD_LOW_L = 40;
-	private static final int DEFAULT_THRESHOLD_LOW_S = 60;
-	private static final int DEFAULT_THRESHOLD_LOW_H = 20;
+	private static final int DEFAULT_THRESHOLD_HIGH_H = 120;
+	private static final int DEFAULT_THRESHOLD_LOW_L = 150;
+	private static final int DEFAULT_THRESHOLD_LOW_S = 150;
+	private static final int DEFAULT_THRESHOLD_LOW_H = 30;
 	
 	private static final String QUALITY = "quality";
 	private static final int DEFAULT_QUALITY = 50;
@@ -38,10 +38,10 @@ public class VisionNetworkTable {
 	private static final boolean DEFAULT_DISPLAY_MASK = false;
 	
 	private static final String BRIGHTNESS = "brightness";
-	private static final int DEFAULT_BRIGHTNESS = 120;
+	private static final int DEFAULT_BRIGHTNESS = 200;
 	
 	private static final String ABSOLUTE_EXPOSURE = "absoluteExposure";
-	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 6;
+	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 20;
 	
 	private final NetworkTable nt;
 
