@@ -1,0 +1,10 @@
+[Unit]
+Description=VisionSystem
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/java -jar /home/pi/VisionSystem.jar
+User=pi
+
+[Install]
+WantedBy=multi-user.target
