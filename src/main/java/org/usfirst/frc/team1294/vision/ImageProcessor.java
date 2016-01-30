@@ -98,9 +98,10 @@ public class ImageProcessor implements Runnable {
 	}
 	
 	public void processImage() {
+		long startTime = System.currentTimeMillis();
+		
 		if (visionTable.isCaptureNextFrame()) {
-			visionTable.setCaptureNextFrame(false);
-			String filename = String.format("%s/%d.jpg", System.getProperty("user.dir"), System.currentTimeMillis());
+			String filename = String.format("%s/original_%d.jpg", System.getProperty("user.dir"), startTime);
 			saveImage(filename, originalImage);
 		}
 		
@@ -113,6 +114,11 @@ public class ImageProcessor implements Runnable {
 				new Scalar(visionTable.getThresholdLowH(), visionTable.getThresholdLowL(), visionTable.getThresholdLowS()),
 				new Scalar(visionTable.getThresholdHighH(), visionTable.getThresholdHighL(), visionTable.getThresholdHighS()),
 				maskImage);
+		
+		if (visionTable.isCaptureNextFrame()) {
+			String filename = String.format("%s/mask_%d.jpg", System.getProperty("user.dir"), startTime);
+			saveImage(filename, maskImage);
+		}
 		
 		// find all the contours
 		List<MatOfPoint> contours = new ArrayList<>();
@@ -176,6 +182,12 @@ public class ImageProcessor implements Runnable {
 			Imgproc.circle(originalImage, new Point(pUpperLeft), 2, color_white, -1);
 			Imgproc.circle(originalImage, new Point(pUpperRight), 2, color_white, -1);
 			Imgproc.circle(originalImage, new Point(pMidpoint), 6, color_red, 3);
+			
+			if (visionTable.isCaptureNextFrame()) {
+				visionTable.setCaptureNextFrame(false);
+				String filename = String.format("%s/marked_%d.jpg", System.getProperty("user.dir"), startTime);
+				saveImage(filename, originalImage);
+			}
 			
 			// update NetworkTables
 			visionTable.setTargetAcquired(true);
