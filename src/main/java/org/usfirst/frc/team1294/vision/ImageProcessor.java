@@ -98,6 +98,11 @@ public class ImageProcessor implements Runnable {
 	}
 	
 	public void processImage() {
+		if (visionTable.isCaptureNextFrame()) {
+			visionTable.setCaptureNextFrame(false);
+			String filename = String.format("%s/%d.jpg", System.getProperty("user.dir"), System.currentTimeMillis());
+			saveImage(filename, originalImage);
+		}
 		
 		// convert it to HSL
 		Imgproc.cvtColor(originalImage, hslImage, Imgproc.COLOR_BGR2HLS);
@@ -122,6 +127,7 @@ public class ImageProcessor implements Runnable {
 					Rect r = Imgproc.boundingRect(c);
 					return (r.width > r.height);
 				})
+				.filter(c -> shapeMatches(c))
 				.max(Comparator.comparing(c -> Imgproc.contourArea(c)));
 		
 		if (targetContour.isPresent()) {
@@ -194,6 +200,14 @@ public class ImageProcessor implements Runnable {
 		
 	}
 
+	private boolean shapeMatches(MatOfPoint contour) {
+		// http://docs.opencv.org/3.1.0/d3/dc0/group__imgproc__shape.html#gaadc90cb16e2362c9bd6e7363e6e4c317
+//		MatOfPoint perfectContour = null; // TODO load this with the shape we are looking for
+//		double percentMatch = Imgproc.matchShapes(perfectContour, contour, Imgproc.CV_CONTOURS_MATCH_I3, 0);
+//		return percentMatch > 0.75;
+		return true;
+	}
+
 	public void captureImage() {
 		setCameraAbsoluteExposure();
 		setCameraBrightness();
@@ -201,15 +215,15 @@ public class ImageProcessor implements Runnable {
 	}
 	
 	public void loadImage(String filename) {
-		System.out.println(filename);
 		originalImage = Imgcodecs.imread(filename);
-		
-		System.out.println(originalImage.channels());
-		System.out.println(originalImage.depth());
 	}
 	
 	public void saveImage(String filename) {
-		Imgcodecs.imwrite(filename, originalImage);
+		saveImage(filename, originalImage);
+	}
+	
+	private void saveImage(String filename, Mat image) {
+		Imgcodecs.imwrite(filename, image);
 	}
 	
 	private static double distance(double[] p1, double[] p2) {

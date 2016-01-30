@@ -43,6 +43,9 @@ public class VisionNetworkTable {
 	private static final String ABSOLUTE_EXPOSURE = "absoluteExposure";
 	private static final int DEFAULT_ABSOLUTE_EXPOSURE = 20;
 	
+	private static final String CAPTURE_NEXT_FRAME = "captureNextFrame";
+	private static final boolean DEFAULT_CAPTURE_NEXT_FRAME = false;
+	
 	private final NetworkTable nt;
 
 	public VisionNetworkTable() {
@@ -167,5 +170,13 @@ public class VisionNetworkTable {
 	
 	public void setAbsoluteExposure(int value) {
 		nt.putNumber(ABSOLUTE_EXPOSURE, value);
+	}
+	
+	public boolean isCaptureNextFrame() {
+		return (boolean)nt.getBoolean(CAPTURE_NEXT_FRAME, DEFAULT_CAPTURE_NEXT_FRAME);
+	}
+	
+	public void setCaptureNextFrame(boolean value) {
+		nt.putBoolean(CAPTURE_NEXT_FRAME, value);
 	}
 }

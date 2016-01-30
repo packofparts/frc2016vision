@@ -35,7 +35,8 @@ public class Application {
 
 	private static void commandLineInterface(VisionNetworkTable visionTable) {
 		while (true) {
-			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b) Brightness:(%d) Exposure:(%d)", visionTable.getThresholdLowH(),
+			System.out.println(String.format("LH:%d LS:%d LL:%d HH:%d HS:%d HL:%d Quality:(%d) Fps:(%d) Mask:(%b) Brightness:(%d) Exposure:(%d)", 
+					visionTable.getThresholdLowH(),
 					visionTable.getThresholdLowS(),
 					visionTable.getThresholdLowL(),
 					visionTable.getThresholdHighH(),
@@ -44,8 +45,9 @@ public class Application {
 					visionTable.getQuality(),
 					visionTable.getFPS(),
 					visionTable.isDisplayMask(),
-					visionTable.getBrightness()));
-					visionTable.getAbsoluteExposure();
+					visionTable.getBrightness(),
+					visionTable.getAbsoluteExposure()));
+					
 			switch (System.console().readLine().toUpperCase()) {
 			case "M": {
 				visionTable.setDisplayMask(!visionTable.isDisplayMask());
@@ -115,6 +117,9 @@ public class Application {
 				break;
 			case "F":
 				// TODO
+				break;
+			case " ":
+				visionTable.setCaptureNextFrame(true);
 				break;
 			}
 		}
