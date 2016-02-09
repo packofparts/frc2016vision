@@ -9,7 +9,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -35,9 +37,11 @@ public class ImageProcessor implements Runnable {
 
 	private VideoCapture capture;
 	private Mat originalImage;
-	private Mat hslImage;
+	private Mat hlsImage;
 	private Mat maskImage;
 	private Mat hierarchy;
+	
+	private MatOfPoint targetContour;
 	
 	private ScheduledExecutorService scheduler;
 	private long lastRun;
@@ -56,13 +60,16 @@ public class ImageProcessor implements Runnable {
 		this.scheduler = Executors.newScheduledThreadPool(1);
 		
 		originalImage = new Mat();
-		hslImage = new Mat();
+		hlsImage = new Mat();
 		maskImage = new Mat();
 		hierarchy = new Mat();
 		
-		setCameraManualExposure();
-		setCameraAbsoluteExposure();
+		//setCameraManualExposure();
+		//setCameraAbsoluteExposure();
+		setCameraAutoExposure();
 		setCameraBrightness();
+		
+		targetContour = loadTargetContour();
 		
 		System.out.println("ImageProcesser constructor done");
 	}
@@ -83,7 +90,7 @@ public class ImageProcessor implements Runnable {
 			processImage();
 			
 			originalImage.release();
-			hslImage.release();
+			hlsImage.release();
 			maskImage.release();
 			hierarchy.release();
 		} catch (Exception e) {
@@ -98,89 +105,74 @@ public class ImageProcessor implements Runnable {
 	}
 	
 	public void processImage() {
+		long startTime = System.currentTimeMillis();
+		boolean captureFrame = false;
 		if (visionTable.isCaptureNextFrame()) {
-			visionTable.setCaptureNextFrame(false);
-			String filename = String.format("%s/%d.jpg", System.getProperty("user.dir"), System.currentTimeMillis());
+			captureFrame = true;
+		}
+		
+		// capture original image
+		if (captureFrame) {
+			String filename = String.format("%s/%d_original.jpg", System.getProperty("user.dir"), startTime);
 			saveImage(filename, originalImage);
 		}
 		
-		// convert it to HSL
-		Imgproc.cvtColor(originalImage, hslImage, Imgproc.COLOR_BGR2HLS);
+		// convert it to HLS
+		Imgproc.cvtColor(originalImage, hlsImage, Imgproc.COLOR_BGR2HLS);
 		
 		// mask out only those pixels in the HSL range
 		Core.inRange(
-				hslImage, 
+				hlsImage, 
 				new Scalar(visionTable.getThresholdLowH(), visionTable.getThresholdLowL(), visionTable.getThresholdLowS()),
 				new Scalar(visionTable.getThresholdHighH(), visionTable.getThresholdHighL(), visionTable.getThresholdHighS()),
 				maskImage);
-		
-		// find all the contours
-		List<MatOfPoint> contours = new ArrayList<>();
+
+		// if toggled, display the mask as the original image
 		if (visionTable.isDisplayMask()) {
 			maskImage.copyTo(originalImage, maskImage);
 		}
+		
+		// capture masked image
+		if (captureFrame) {
+			String filename = String.format("%s/%d_masked.jpg", System.getProperty("user.dir"), startTime);
+			saveImage(filename, maskImage);
+		}
+		
+		// find all the contours
+		List<MatOfPoint> contours = new ArrayList<>();	
 		Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 		
-		//find the target contour TODO: much more logic needed here
-		Optional<MatOfPoint> targetContour = contours.stream()
-				.filter((c) -> {
-					Rect r = Imgproc.boundingRect(c);
-					return (r.width > r.height);
-				})
-				.filter(c -> shapeMatches(c))
-				.max(Comparator.comparing(c -> Imgproc.contourArea(c)));
+		// draw all the contours
+		Imgproc.drawContours(originalImage, contours, -1, color_gray);
 		
-		if (targetContour.isPresent()) {
-			Rect boundingRect = Imgproc.boundingRect(targetContour.get());
-			
-			// find upper left and upper right points on the contour
-			double[] pRectUpperLeft = new double[2];
-			pRectUpperLeft[0] = boundingRect.x;
-			pRectUpperLeft[1] = boundingRect.y;
-			
-			double[] pRectUpperRight = new double[2];
-			pRectUpperRight[0] = boundingRect.x + boundingRect.width;
-			pRectUpperRight[1] = boundingRect.y;
-			
-			double[] pUpperLeft = null;
-			double[] pUpperRight = null;
-			double minDistanceUpperLeft = Double.MAX_VALUE;
-			double minDistanceUpperRight = Double.MAX_VALUE;
-			
-			for(int col=0;col<targetContour.get().cols();col++) {
-				for (int row=0;row<targetContour.get().rows();row++) {
-					double[] p = targetContour.get().get(row, col);
-					
-					double dUpperLeft = distance(p, pRectUpperLeft);
-					if (dUpperLeft < minDistanceUpperLeft) {
-						minDistanceUpperLeft = dUpperLeft;
-						pUpperLeft = p;
-					}
-					
-					double dUpperRight = distance(p, pRectUpperRight);
-					if (dUpperRight < minDistanceUpperRight) {
-						minDistanceUpperRight = dUpperRight;
-						pUpperRight = p;
-					}
-				}
-			}
-			
-			// find the midpoint between the upper left and right points on the contour
-			double[] pMidpoint = new double[2];
-			pMidpoint[0] = (pUpperLeft[0] + pUpperRight[0]) / 2;
-			pMidpoint[1] = (pUpperLeft[1] + pUpperRight[1]) / 2;
+		// filter out the contours that are not the right size
+		contours = contours.stream()
+				.filter(c -> isContourAppropriateSize(c))
+				.collect(Collectors.toList());
 		
-			// draw the contours, target rect, midpoint, etc
-			Imgproc.drawContours(originalImage, Arrays.asList(targetContour.get()), -1, color_yellow);
-			Imgproc.rectangle(originalImage, boundingRect.tl(), boundingRect.br(), color_gray);
-			Imgproc.circle(originalImage, new Point(pUpperLeft), 2, color_white, -1);
-			Imgproc.circle(originalImage, new Point(pUpperRight), 2, color_white, -1);
-			Imgproc.circle(originalImage, new Point(pMidpoint), 6, color_red, 3);
+		// draw the filtered contours
+		Imgproc.drawContours(originalImage, contours, -1, color_yellow);
+		
+		// pick the best contour
+		Optional<MatOfPoint> bestMatch = contours.stream()
+				.min(Comparator.comparing(c -> matchShapes(c)));
+		
+		if (bestMatch.isPresent()) {
+			Rect boundingRect = Imgproc.boundingRect(bestMatch.get());
+			
+			// find the midpoint of the bounding rect
+			Point midpoint = new Point();
+			midpoint.x = (boundingRect.tl().x + boundingRect.br().x) / 2;
+			midpoint.y = (boundingRect.tl().y + boundingRect.br().y) / 2;
+		
+			// draw the contour and the midpoint
+			Imgproc.drawContours(originalImage, Arrays.asList(bestMatch.get()), -1, color_red);
+			Imgproc.circle(originalImage, midpoint, 6, color_red, 3);
 			
 			// update NetworkTables
 			visionTable.setTargetAcquired(true);
-			visionTable.setTargetX((int)pMidpoint[0]);
-			visionTable.setTargetY((int)pMidpoint[1]);
+			visionTable.setTargetX((int)midpoint.x);
+			visionTable.setTargetY((int)midpoint.y);
 			visionTable.setLastUpdated(System.currentTimeMillis());
 		} else {
 			// update NetworkTables
@@ -197,15 +189,56 @@ public class ImageProcessor implements Runnable {
 		Imgcodecs.imencode(".jpg", originalImage, m, parameters);
 		lastImage.set(m.toArray());
 		
+		// capture final image
+		if (captureFrame) {
+			visionTable.setCaptureNextFrame(false);
+			String filename = String.format("%s/%d_marked.jpg", System.getProperty("user.dir"), startTime);
+			saveImage(filename, originalImage);
+		}
 		
 	}
 
-	private boolean shapeMatches(MatOfPoint contour) {
-		// http://docs.opencv.org/3.1.0/d3/dc0/group__imgproc__shape.html#gaadc90cb16e2362c9bd6e7363e6e4c317
-//		MatOfPoint perfectContour = null; // TODO load this with the shape we are looking for
-//		double percentMatch = Imgproc.matchShapes(perfectContour, contour, Imgproc.CV_CONTOURS_MATCH_I3, 0);
-//		return percentMatch > 0.75;
+	private MatOfPoint loadTargetContour() {
+		try {
+			byte[] targetBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/target.jpg"));
+			Mat targetImage = Imgcodecs.imdecode(new MatOfByte(targetBytes), Imgcodecs.IMREAD_UNCHANGED);
+			Mat targetHslImage = new Mat();
+			// convert it to HSL
+			Imgproc.cvtColor(targetImage, targetHslImage, Imgproc.COLOR_BGR2HLS);
+			// mask out only those pixels in the HSL range
+			Mat targetMaskImage = new Mat();
+			Core.inRange(
+					targetHslImage, 
+					new Scalar(0,100,0),
+					new Scalar(255,255,255),
+					targetMaskImage);
+			Mat h = new Mat();
+			List<MatOfPoint> targetContours = new ArrayList<MatOfPoint>();
+			Imgproc.findContours(targetMaskImage, targetContours, h, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+			return targetContours.get(0);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
+	}
+	
+	private boolean isContourAppropriateSize(MatOfPoint contour) {
+		Rect boundingRect = Imgproc.boundingRect(contour);
+		if (boundingRect.width < 50)
+			return false;
+		if (boundingRect.height < 10)
+			return false;
+		if (boundingRect.width > 500)
+			return false;
+		if (boundingRect.height > 300)
+			return false;
+		
 		return true;
+	}
+	
+	private double matchShapes(MatOfPoint contour) {
+		double match = Imgproc.matchShapes(targetContour, contour, Imgproc.CV_CONTOURS_MATCH_I1, 0);
+		return match;
 	}
 
 	public void captureImage() {
@@ -226,12 +259,6 @@ public class ImageProcessor implements Runnable {
 		Imgcodecs.imwrite(filename, image);
 	}
 	
-	private static double distance(double[] p1, double[] p2) {
-		  double dx = Math.abs(p1[0] - p2[0]);
-		  double dy = Math.abs(p1[1] - p2[1]);
-		  return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-	  }
-
 	public byte[] getLatestImage() {
 		return lastImage.get();
 	}
@@ -253,6 +280,14 @@ public class ImageProcessor implements Runnable {
 			Runtime.getRuntime().exec("/usr/bin/v4l2-ctl --set-ctrl exposure_auto=1");
 		} catch (Exception ex) {
 			LOG.error("Could not set manual exposure", ex);
+		}
+	}
+	
+	private void setCameraAutoExposure() {
+		try {
+			Runtime.getRuntime().exec("/usr/bin/v4l2-ctl --set-ctrl exposure_auto=3");
+		} catch (Exception ex) {
+			LOG.error("Could not set auto exposure", ex);
 		}
 	}
 	

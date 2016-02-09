@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
 	compile 'org.slf4j:slf4j-api:1.7.13'
+	compile 'commons-io:commons-io:2.4'
     compile files("$rootDir/lib/opencv-310.jar")
 	compile group: 'edu.wpi.first.wpilib.networktables.java', name: 'NetworkTables', version: '3.0.0-SNAPSHOT', classifier: 'desktop'
 	

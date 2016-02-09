@@ -59,6 +59,7 @@ public class Application {
 				} catch (Exception ex) {
 					break;
 				}
+				break;
 			}
 			case "B": {
 				try {
@@ -81,22 +82,25 @@ public class Application {
 					visionTable.setThresholdLowS(Double.parseDouble(System.console().readLine("New Low Threshold Saturation value: ")));
 				
 				} catch (Exception ex) {
-				break;
+					break;
 				}
+				break;
 			}
 			case "LL": {
 				try {
 					visionTable.setThresholdLowL(Double.parseDouble(System.console().readLine("New Low Threshold Luminance value: ")));
 				} catch (Exception ex) {
-				break;
+					break;
 				}
+				break;
 			}
 			case "HH": {
 				try {
 					visionTable.setThresholdHighH(Double.parseDouble(System.console().readLine("New High Threshold Hue value: ")));
 				} catch (Exception ex) {
-				break;
+					break;
 				}
+				break;
 			}
 			case "HS": {
 				try {
@@ -104,13 +108,15 @@ public class Application {
 				} catch (Exception ex) {	
 					break;
 				}
+				break;
 			}
 			case "HL": {
 				try {
 					visionTable.setThresholdHighL(Double.parseDouble(System.console().readLine("New High Threshold Luminance Value:")));
 				} catch (Exception ex) {
- 				break;
-			}
+					break;
+				}
+				break;
 			}
 			case "Q":
 				// TODO
